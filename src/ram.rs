@@ -1,9 +1,13 @@
-#[derive(Default)]
 pub struct RAM {
     memory: [u8; 4096], //TODO: How much memory should the console have?? Right now random value from Github Copilot
 }
 
 impl RAM {
+    pub fn init() -> Self {
+        RAM {
+            memory: [0; 4096]
+        }
+    }
     pub fn write(&mut self, address: usize, value: u8) {
         self.memory[address] = value;
     }

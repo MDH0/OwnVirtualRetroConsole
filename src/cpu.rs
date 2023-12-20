@@ -1,6 +1,6 @@
-use crate::ram::RAM;
+use crate::mmu::MMU;
 
-enum Instruction {
+pub enum Instruction {
     ADD {
         register: usize,
         value: u8,
@@ -18,19 +18,31 @@ enum Instruction {
         target_register: usize,
     },
     NOP,
-
+    RET,
 }
 
-struct CPU {
+pub struct CPU {
     registers: [u8; 8],
     current_instruction: Instruction,
-    ram: RAM,
+    program_counter: usize,
+    mmu: MMU,
+}
+
+impl CPU {
+    pub fn init(mmu: MMU) -> Self {
+        CPU {
+            registers: [0, 0, 0, 0, 0, 0, 0, 0],
+            current_instruction: Instruction::NOP,
+            program_counter: 0,
+            mmu,
+        }
+    }
 }
 
 impl CPU {
     fn execute_instruction(&mut self) {
         match self.current_instruction {
-            Instruction::ADD(register, value) => {
+            Instruction::ADD{register, value} => {
                 if let 1..=8 = register {
                     self.registers[register] += value;
                 }
@@ -38,7 +50,7 @@ impl CPU {
                     panic!("Invalid register!")
                 }
             },
-            Instruction::SUB(register, value) => {
+            Instruction::SUB{register, value} => {
                 if let 1..=8 = register {
                     self.registers[register] -= value;
                 }
@@ -46,23 +58,27 @@ impl CPU {
                     panic!("Invalid register!")
                 }
             }
-            Instruction::MOV(register, value) => {
+            Instruction::MOV{register, target_address } => {
                 if let 1..=8 = register {
-                    self.ram.write(value, self.registers[register]);
+                    todo!()
                 }
                 else {
                     panic!("Invalid register!")
                 }
             }
-            Instruction::LD(address, register) => {
-                if let 1..=8 = register {
-                    self.registers[register] = self.ram.read(address);
+            Instruction::LD{address, target_register} => {
+                if let 1..=8 = target_register {
+                    todo!()
                 }
                 else {
                     panic!("Invalid register!")
                 }
             }
             Instruction::NOP => return,
+            Instruction::RET => {
+                self.mmu.cleanup_function();
+            }
         }
+        self.current_instruction = self.mmu.get_next_instruction()
     }
 }
